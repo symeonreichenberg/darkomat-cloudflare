@@ -1,3 +1,9 @@
+try:
+    from argon2 import PasswordHasher
+    ARGON2_AVAILABLE = True
+except ImportError:
+    ARGON2_AVAILABLE = False
+
 from workers import Response, WorkerEntrypoint
 import hashlib
 
@@ -70,6 +76,12 @@ class Default(WorkerEntrypoint):
             return Response.json({
                 "ok": True,
                 "hash": hashed,
+            })
+
+        if request.url.endswith("/api/argon2-test"):
+            return Response.json({
+                "ok": True,
+                "argon2_available": ARGON2_AVAILABLE,
             })
 
             try:
