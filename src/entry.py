@@ -1,4 +1,5 @@
 from workers import Response, WorkerEntrypoint
+import hashlib
 
 HTML = """<!doctype html>
 <html lang="cs">
@@ -58,6 +59,18 @@ class Default(WorkerEntrypoint):
                     },
                     status=400,
                 )
+
+        if request.url.endswith("/api/hash-test"):
+            password = "tajne-heslo"
+
+            hashed = hashlib.sha256(
+                password.encode("utf-8")
+            ).hexdigest()
+
+            return Response.json({
+                "ok": True,
+                "hash": hashed,
+            })
 
             try:
                 result = await self.env.DB.prepare(
