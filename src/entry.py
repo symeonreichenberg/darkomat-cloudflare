@@ -130,6 +130,15 @@ class Default(WorkerEntrypoint):
                 "digest": len(digest),
             })
 
+        if request.url.endswith("/api/ffi-test"):
+            from js import Object
+
+            return Response.json({
+                "ok": True,
+                "ffi_available": True,
+                "object_type": str(Object),
+            })
+
         if request.url.endswith("/api/pbkdf2-test"):
             password = "tajne-heslo"
             salt = b"test-salt"
