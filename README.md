@@ -1,26 +1,33 @@
 # Dárkomat 2.0
 
-Nová verze Dárkomatu na Cloudflare Workers + Python.
+Nová verze Dárkomatu postavená na Cloudflare Workers + Python + D1.
 
 ## Aktuální stav
-- jednoduchá webová stránka
+
+- minimální Python Worker
 - `/api/health`
-- databáze D1 zatím není připojená
+- první návrh D1 schématu
+- D1 zatím není připojená
 
-## Deploy
-Cloudflare Workers Builds:
-`npx wrangler deploy`
+## Cloudflare Workers Builds
 
-Python Workers jsou na Cloudflare aktuálně v open beta. D1 lze z Python Workeru používat přes binding.
+Production deploy command:
 
-## Plán
-1. první Python Worker
-2. D1
-3. registrace a přihlášení
-4. skupiny
-5. dárky
-6. rezervace
-7. pozvánky
-8. e-mail přes Resend
-9. frontend
-10. bezpečnost a produkční úklid
+```text
+uv run pywrangler deploy
+```
+
+Python Workers používají `pywrangler` pro lokální vývoj a deployment.
+
+## Další kroky
+
+1. první deploy
+2. vytvořit D1 databázi
+3. přidat D1 binding
+4. první SQL dotaz z Pythonu
+5. registrace a přihlášení
+6. skupiny
+7. dárky
+8. rezervace
+9. pozvánky
+10. e-mail přes Resend

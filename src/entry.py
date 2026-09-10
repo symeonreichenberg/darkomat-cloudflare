@@ -14,7 +14,7 @@ code { background: #f2f2f2; padding: 2px 6px; border-radius: 6px; }
 </head>
 <body>
 <h1>🎁 Dárkomat 2.0</h1>
-<p>Základ nové verze běží na Cloudflare Workers a Pythonu.</p>
+<p>Nový Dárkomat běží na Cloudflare Workers a Pythonu.</p>
 <div class="card">
 <h2>První krok je hotový</h2>
 <p>Backend je napsaný v Pythonu. Dalším krokem bude připojení databáze D1.</p>
@@ -33,4 +33,8 @@ class Default(WorkerEntrypoint):
                 "language": "python",
                 "database": "not-connected-yet",
             })
-        return Response(HTML, headers={"content-type": "text/html; charset=UTF-8"})
+
+        return Response(
+            HTML,
+            headers={"content-type": "text/html; charset=UTF-8"},
+        )
