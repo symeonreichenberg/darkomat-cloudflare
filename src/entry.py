@@ -36,7 +36,7 @@ class Default(WorkerEntrypoint):
 
         if request.url.endswith("/api/db-test"):
             result = await self.env.DB.prepare(
-                "SELECT 1 AS connected"
+                "SELECT COUNT(*) AS count FROM users"
             ).run()
 
             return Response.json({
