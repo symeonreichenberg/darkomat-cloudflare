@@ -1,11 +1,6 @@
-try:
-    from argon2 import PasswordHasher
-    ARGON2_AVAILABLE = True
-except ImportError:
-    ARGON2_AVAILABLE = False
-
 from workers import Response, WorkerEntrypoint
 import hashlib
+
 
 HTML = """<!doctype html>
 <html lang="cs">
@@ -30,8 +25,10 @@ code { background: #f2f2f2; padding: 2px 6px; border-radius: 6px; }
 </body>
 </html>"""
 
+
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
+
         if request.url.endswith("/api/health"):
             return Response.json({
                 "ok": True,
@@ -66,42 +63,6 @@ class Default(WorkerEntrypoint):
                     status=400,
                 )
 
-        if request.url.endswith("/api/hash-test"):
-            password = "tajne-heslo"
-
-            hashed = hashlib.sha256(
-                password.encode("utf-8")
-            ).hexdigest()
-
-            return Response.json({
-                "ok": True,
-                "hash": hashed,
-            })
-
-        if request.url.endswith("/api/argon2-test"):
-            return Response.json({
-                "ok": True,
-                "argon2_available": ARGON2_AVAILABLE,
-            })
-
-        if request.url.endswith("/api/pbkdf2-test"):
-            password = "tajne-heslo"
-            salt = b"test-salt"
-
-            hashed = hashlib.pbkdf2_hmac(
-                "sha256",
-                password.encode("utf-8"),
-                salt,
-                600_000,
-            ).hex()
-
-            return Response.json({
-                "ok": True,
-                "algorithm": "PBKDF2-HMAC-SHA256",
-                "iterations": 600_000,
-                "hash": hashed,
-            })
-
             try:
                 result = await self.env.DB.prepare(
                     """
@@ -127,6 +88,48 @@ class Default(WorkerEntrypoint):
                     },
                     status=400,
                 )
+
+        if request.url.endswith("/api/hash-test"):
+            password = "tajne-heslo"
+
+            hashed = hashlib.sha256(
+                password.encode("utf-8")
+            ).hexdigest()
+
+            return Response.json({
+                "ok": True,
+                "hash": hashed,
+            })
+
+        if request.url.endswith("/api/argon2-test"):
+            try:
+                from argon2 import PasswordHasher
+                argon2_available = True
+            except ImportError:
+                argon2_available = False
+
+            return Response.json({
+                "ok": True,
+                "argon2_available": argon2_available,
+            })
+
+        if request.url.endswith("/api/pbkdf2-test"):
+            password = "tajne-heslo"
+            salt = b"test-salt"
+
+            hashed = hashlib.pbkdf2_hmac(
+                "sha256",
+                password.encode("utf-8"),
+                salt,
+                600_000,
+            ).hex()
+
+            return Response.json({
+                "ok": True,
+                "algorithm": "PBKDF2-HMAC-SHA256",
+                "iterations": 600_000,
+                "hash": hashed,
+            })
 
         return Response(
             HTML,
