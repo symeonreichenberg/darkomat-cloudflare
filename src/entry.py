@@ -119,24 +119,10 @@ class Default(WorkerEntrypoint):
             })
 
         if request.url.endswith("/api/crypto-test"):
-            encoder = TextEncoder.new()
-            data = encoder.encode("tajne-heslo")
-
-            digest = await crypto.subtle.digest(
-                to_js({"name": "SHA-256"}),
-                data,
-            )
-
             return Response.json({
                 "ok": True,
-                "crypto_available": True,
-                "digest_length": len(digest),
-            })
-
-            return Response.json({
-                "ok": True,
-                "crypto_available": True,
-                "digest": len(digest),
+                "crypto_available": str(crypto),
+                "subtle_available": str(crypto.subtle),
             })
 
         if request.url.endswith("/api/ffi-test"):
