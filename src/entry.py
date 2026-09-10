@@ -34,6 +34,16 @@ class Default(WorkerEntrypoint):
                 "database": "not-connected-yet",
             })
 
+        if request.url.endswith("/api/db-test"):
+            result = await self.env.DB.prepare(
+                "SELECT 1 AS connected"
+            ).run()
+
+            return Response.json({
+                "ok": True,
+                "database": result,
+            })
+
         return Response(
             HTML,
             headers={"content-type": "text/html; charset=UTF-8"},
