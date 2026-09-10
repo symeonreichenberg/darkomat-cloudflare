@@ -1,0 +1,13 @@
+{
+  "name": "darkomat-cloudflare",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Dárkomat 2.0 - Cloudflare Worker with Python",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
