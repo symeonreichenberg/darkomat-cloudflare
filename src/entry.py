@@ -84,6 +84,24 @@ class Default(WorkerEntrypoint):
                 "argon2_available": ARGON2_AVAILABLE,
             })
 
+        if request.url.endswith("/api/pbkdf2-test"):
+            password = "tajne-heslo"
+            salt = b"test-salt"
+
+            hashed = hashlib.pbkdf2_hmac(
+                "sha256",
+                password.encode("utf-8"),
+                salt,
+                600_000,
+            ).hex()
+
+            return Response.json({
+                "ok": True,
+                "algorithm": "PBKDF2-HMAC-SHA256",
+                "iterations": 600_000,
+                "hash": hashed,
+            })
+
             try:
                 result = await self.env.DB.prepare(
                     """
