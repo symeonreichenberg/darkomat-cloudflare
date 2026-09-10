@@ -37,12 +37,53 @@ class Default(WorkerEntrypoint):
         if request.url.endswith("/api/db-test"):
             result = await self.env.DB.prepare(
                 "SELECT COUNT(*) AS count FROM users"
-            ).run()
+            ).first()
 
             return Response.json({
                 "ok": True,
                 "database": result,
             })
+
+        if request.method == "POST" and request.url.endswith("/api/register"):
+            data = await request.json()
+
+            name = data.get("name", "").strip()
+            email = data.get("email", "").strip().lower()
+
+            if not name or not email:
+                return Response.json(
+                    {
+                        "ok": False,
+                        "error": "Name and email are required",
+                    },
+                    status=400,
+                )
+
+            try:
+                result = await self.env.DB.prepare(
+                    """
+                    INSERT INTO users (name, email, password_hash)
+                    VALUES (?, ?, ?)
+                    RETURNING id, name, email
+                    """
+                ).bind(name, email, "TEMP").first()
+
+                return Response.json(
+                    {
+                        "ok": True,
+                        "user": result,
+                    },
+                    status=201,
+                )
+
+            except Exception:
+                return Response.json(
+                    {
+                        "ok": False,
+                        "error": "Could not create user",
+                    },
+                    status=400,
+                )
 
         return Response(
             HTML,
