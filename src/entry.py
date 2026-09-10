@@ -119,10 +119,24 @@ class Default(WorkerEntrypoint):
             })
 
         if request.url.endswith("/api/crypto-test"):
+            encoder = TextEncoder.new()
+
+            secret_key = encoder.encode("tajne-heslo")
+
+            key = await crypto.subtle.importKey(
+                "raw",
+                secret_key,
+                to_js({
+                    "name": "PBKDF2"
+                }),
+                False,
+                ["deriveBits"],
+            )
+
             return Response.json({
                 "ok": True,
-                "crypto_available": str(crypto),
-                "subtle_available": str(crypto.subtle),
+                "crypto_available": True,
+                "key_created": True,
             })
 
         if request.url.endswith("/api/ffi-test"):
