@@ -1,6 +1,10 @@
 from workers import Response, WorkerEntrypoint
 import hashlib
-from js import crypto, TextEncoder
+from js import crypto, TextEncoder, Object
+from pyodide.ffi import to_js as _to_js
+
+def to_js(value):
+    return _to_js(value, dict_converter=Object.fromEntries)
 
 
 HTML = """<!doctype html>
@@ -116,13 +120,18 @@ class Default(WorkerEntrypoint):
 
         if request.url.endswith("/api/crypto-test"):
             encoder = TextEncoder.new()
-
             data = encoder.encode("tajne-heslo")
 
             digest = await crypto.subtle.digest(
-                "SHA-256",
+                to_js({"name": "SHA-256"}),
                 data,
             )
+
+            return Response.json({
+                "ok": True,
+                "crypto_available": True,
+                "digest_length": len(digest),
+            })
 
             return Response.json({
                 "ok": True,
