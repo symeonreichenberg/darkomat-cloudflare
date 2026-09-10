@@ -1,5 +1,6 @@
 from workers import Response, WorkerEntrypoint
 import hashlib
+from js import crypto, TextEncoder
 
 
 HTML = """<!doctype html>
@@ -111,6 +112,22 @@ class Default(WorkerEntrypoint):
             return Response.json({
                 "ok": True,
                 "argon2_available": argon2_available,
+            })
+
+        if request.url.endswith("/api/crypto-test"):
+            encoder = TextEncoder.new()
+
+            data = encoder.encode("tajne-heslo")
+
+            digest = await crypto.subtle.digest(
+                "SHA-256",
+                data,
+            )
+
+            return Response.json({
+                "ok": True,
+                "crypto_available": True,
+                "digest": len(digest),
             })
 
         if request.url.endswith("/api/pbkdf2-test"):
