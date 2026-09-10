@@ -3,7 +3,7 @@
   "name": "darkomat-cloudflare",
   "main": "src/entry.py",
   "compatibility_date": "2026-09-10",
-  "compatibility_flags": ["python_workers"]
+  "compatibility_flags": ["python_workers"],
   "d1_databases": [
     {
       "binding": "DB",
