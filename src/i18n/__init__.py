@@ -1,13 +1,24 @@
-from .cs import TEXTS as CS
-from .en import TEXTS as EN
+from . import cs, en
 
-def get_language(request):
+LANGUAGES = {
+    "en": en.TEXTS,
+    "cs": cs.TEXTS,
+}
+
+
+def get_language(request) -> str:
     cookie = request.headers.get("Cookie", "")
-    if "darkomat_lang=cs" in cookie:
-        return "cs"
-    if "darkomat_lang=en" in cookie:
-        return "en"
-    return "cs"
+    for part in cookie.split(";"):
+        name, _, value = part.strip().partition("=")
+        if name == "lang" and value in LANGUAGES:
+            return value
 
-def t(key, language="cs"):
-    return (CS if language == "cs" else EN).get(key, key)
+    accept_language = request.headers.get("Accept-Language", "").lower()
+    if accept_language.startswith("cs") or ",cs" in accept_language or ";cs" in accept_language:
+        return "cs"
+
+    return "en"
+
+
+def t(key: str, language: str) -> str:
+    return LANGUAGES.get(language, LANGUAGES["en"]).get(key, key)
