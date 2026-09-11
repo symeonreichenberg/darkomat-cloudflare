@@ -1,35 +1,20 @@
-# Dárkomat Cloudflare
+# Dárkomat
 
-Current foundation:
+Functional MVP on Cloudflare Workers + D1.
 
-- Python Worker + D1
-- server-rendered HTML templates
-- English default + Czech translations
-- registration with password hashing
-- email verification
-- login sessions with HttpOnly/Secure cookie
+## Current pages
+
+- `/` landing page
+- `/register` registration
+- `/login` login
+- `/app` dashboard
+- `/groups/new` create family
+- `/groups/<id>` family: members, occasions, wishes and reservations
+- `/account` account
 - logout
-- Resend mailer abstraction
 
-## Cloudflare variables
+Email verification is intentionally disabled for this MVP. Existing D1 email-verification columns/tables may remain in the database; they are simply unused.
 
-Set these on the Worker:
+## Deploy
 
-- `APP_URL` — the workers.dev URL
-- `RESEND_API_KEY` — Secret
-- `MAIL_FROM` — Variable
-
-For development, Resend documents `onboarding@resend.dev` as a test sender. Sending to arbitrary real recipients is subject to Resend's current testing/domain rules; use a verified domain for production sending.
-
-## D1
-
-Apply migrations in order. The new migration is:
-
-`migrations/0003_email_verification.sql`
-
-It adds:
-
-- `users.email_verified_at`
-- `email_verification_tokens`
-
-`0002_sessions.sql` is required for login sessions.
+Cloudflare Workers Builds runs the configured deploy command on push to `main`.
