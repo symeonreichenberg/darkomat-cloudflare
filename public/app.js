@@ -1,1 +1,1 @@
-/* Authentication uses native HTML forms. */
+// Reserved for future progressive-enhancement features. Authentication uses normal HTML forms.
