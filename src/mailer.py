@@ -1,68 +1,42 @@
 import json
 
+from js import Object, fetch
+from pyodide.ffi import to_js
 
-async def send_email(env, to, subject, html, text, tag=None):
-    """
-    Send an email through Resend.
 
-    RESEND_API_KEY is a Cloudflare secret.
-    MAIL_FROM and APP_URL are Worker configuration values.
-    """
+def _js_options(options):
+    return to_js(options, dict_converter=Object.fromEntries)
 
+
+async def send_email(env, to: str, subject: str, html: str):
     api_key = getattr(env, "RESEND_API_KEY", None)
-    mail_from = getattr(env, "MAIL_FROM", None)
+    from_address = getattr(env, "MAIL_FROM", None)
 
-    if not api_key:
-        raise RuntimeError("RESEND_API_KEY is not configured")
+    if not api_key or not from_address:
+        raise RuntimeError("Email service is not configured")
 
-    if not mail_from:
-        raise RuntimeError("MAIL_FROM is not configured")
-
-    payload = {
-        "from": mail_from,
-        "to": [to],
-        "subject": subject,
-        "html": html,
-        "text": text,
-    }
-
-    if tag:
-        payload["tags"] = [
-            {
-                "name": "category",
-                "value": tag,
-            }
-        ]
-
-    from js import Object, fetch
-    from pyodide.ffi import to_js
-
-    options = to_js(
-        {
+    response = await fetch(
+        "https://api.resend.com/emails",
+        _js_options({
             "method": "POST",
             "headers": {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "darkomat/1.0",
+                "User-Agent": "darkomat-cloudflare",
             },
-            "body": json.dumps(payload),
-        },
-        dict_converter=Object.fromEntries,
-    )
-
-    response = await fetch(
-        "https://api.resend.com/emails",
-        options,
+            "body": json.dumps({
+                "from": from_address,
+                "to": [to],
+                "subject": subject,
+                "html": html,
+            }),
+        }),
     )
 
     if not response.ok:
-        try:
-            details = await response.text()
-        except Exception:
-            details = "unknown email provider error"
-
+        body = await response.text()
         raise RuntimeError(
-            f"Resend returned HTTP {response.status}: {details}"
+            f"Resend API error: {response.status}: {body}"
         )
 
     return await response.json()

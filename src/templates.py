@@ -136,16 +136,7 @@ def _feature(icon, title_key, text_key, language):
 </div>"""
 
 
-def auth_page(language: str, mode: str, pending: bool = False) -> str:
-    if mode == "register" and pending:
-        return message_page(
-            language,
-            "auth.verify_sent_title",
-            "auth.verify_sent_text",
-            "auth.login_link",
-            "/login",
-        )
-
+def auth_page(language: str, mode: str) -> str:
     is_login = mode == "login"
     title_key = "auth.login_title" if is_login else "auth.register_title"
     subtitle_key = "auth.login_subtitle" if is_login else "auth.register_subtitle"
@@ -191,47 +182,54 @@ def auth_page(language: str, mode: str, pending: bool = False) -> str:
     {footer}
   </div>
 </section>
-<script src="/app.js" defer></script>
 <script>window.DARKOMAT_PAGE = "{mode}";</script>
+<script src="/app.js" defer></script>
+""",
+    )
+
+
+def account_page(language: str, user) -> str:
+    return layout(
+        language,
+        t("account.title", language),
+        f"""
+<section class="auth-section">
+  <div class="auth-card">
+    <p class="eyebrow">{escape(t("brand.name", language))}</p>
+    <h1>{escape(t("account.title", language))}</h1>
+    <p class="auth-subtitle">
+      {escape(t("account.logged_in_as", language).format(name=user["name"]))}
+    </p>
+    <p>{escape(user["email"])}</p>
+    <form method="post" action="/api/logout">
+      <button class="button" type="submit">{escape(t("account.logout", language))}</button>
+    </form>
+  </div>
+</section>
+""",
+    )
+
+
+def message_page(language: str, message: str, link_text: str, link_url: str) -> str:
+    return layout(
+        language,
+        t("brand.name", language),
+        f"""
+<section class="auth-section">
+  <div class="auth-card">
+    <p class="eyebrow">{escape(t("brand.name", language))}</p>
+    <h1>{escape(message)}</h1>
+    <a class="button" href="{escape(link_url)}">{escape(link_text)}</a>
+  </div>
+</section>
 """,
     )
 
 
 def not_found_page(language: str) -> str:
-    return layout(
+    return message_page(
         language,
         t("error.not_found_title", language),
-        f"""
-<section class="auth-section">
-  <div class="auth-card">
-    <p class="eyebrow">{escape(t("brand.name", language))}</p>
-    <h1>{escape(t("error.not_found_title", language))}</h1>
-    <p class="auth-subtitle">{escape(t("error.not_found_text", language))}</p>
-    <a class="button" href="/">{escape(t("error.back_home", language))}</a>
-  </div>
-</section>
-""",
-    )
-
-
-def message_page(
-    language: str,
-    title_key: str,
-    text_key: str,
-    link_key: str,
-    link_url: str,
-) -> str:
-    return layout(
-        language,
-        t(title_key, language),
-        f"""
-<section class="auth-section">
-  <div class="auth-card">
-    <p class="eyebrow">{escape(t("brand.name", language))}</p>
-    <h1>{escape(t(title_key, language))}</h1>
-    <p class="auth-subtitle">{escape(t(text_key, language))}</p>
-    <a class="button" href="{escape(link_url)}">{escape(t(link_key, language))}</a>
-  </div>
-</section>
-""",
+        t("error.back_home", language),
+        "/",
     )
