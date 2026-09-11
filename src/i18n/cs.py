@@ -76,5 +76,6 @@ TEXTS = {
     "email.verify_greeting": "Ahoj {name},",
     "email.verify_text": "Kliknutím na tlačítko níže potvrďte svou e-mailovou adresu.",
     "email.verify_button": "Potvrdit e-mailovou adresu",
+    "auth.verification_not_available": "Ověření e-mailu je dočasně vypnuté.",
     "footer.tagline": "Rodinné seznamy přání jednoduše.",
 }

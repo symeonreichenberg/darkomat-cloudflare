@@ -7,9 +7,7 @@ from urllib.parse import urlparse, parse_qs
 from workers import Response, WorkerEntrypoint
 
 from auth import hash_password, verify_password
-from email_templates import verification_email
 from i18n import get_language, t
-from mailer import send_email
 from templates import (
     account_page,
     auth_page,
@@ -20,7 +18,6 @@ from templates import (
 
 
 SESSION_DAYS = 30
-VERIFICATION_HOURS = 24
 
 
 def _now() -> datetime:
@@ -141,6 +138,12 @@ class Default(WorkerEntrypoint):
         if not name or not email or not password:
             return Response.json({"ok": False, "error": "required"}, status=400)
 
+        if len(name) > 100:
+            return Response.json({"ok": False, "error": "name_too_long"}, status=400)
+
+        if "@" not in email or len(email) > 254:
+            return Response.json({"ok": False, "error": "invalid_email"}, status=400)
+
         if len(password) < 8:
             return Response.json({"ok": False, "error": "password_short"}, status=400)
 
@@ -149,47 +152,17 @@ class Default(WorkerEntrypoint):
         ).bind(email).first()
 
         if existing:
-            return Response.json({
-                "ok": False,
-                "error": "register_failed",
-            }, status=400)
+            return Response.json({"ok": False, "error": "email_exists"}, status=409)
 
         password_hash = await hash_password(password)
 
+        user = None
         try:
             user = await self.env.DB.prepare(
-                "INSERT INTO users (name, email, password_hash) "
-                "VALUES (?, ?, ?) RETURNING id, name, email"
+                "INSERT INTO users (name, email, password_hash, email_verified_at) "
+                "VALUES (?, ?, ?, CURRENT_TIMESTAMP) "
+                "RETURNING id, name, email"
             ).bind(name, email, password_hash).first()
-
-            token = _new_token()
-            token_hash = _hash_token(token)
-            expires_at = _timestamp(
-                _now() + timedelta(hours=VERIFICATION_HOURS)
-            )
-
-            await self.env.DB.prepare(
-                "INSERT INTO email_verification_tokens "
-                "(token_hash, user_id, expires_at) VALUES (?, ?, ?)"
-            ).bind(token_hash, user["id"], expires_at).run()
-
-            verify_url = self.absolute_url(
-                request,
-                f"/verify-email?token={token}",
-            )
-
-            subject, html = verification_email(
-                language,
-                name,
-                verify_url,
-            )
-
-            await send_email(
-                self.env,
-                email,
-                subject,
-                html,
-            )
 
             session_token = _new_token()
             session_hash = _hash_token(session_token)
@@ -208,83 +181,37 @@ class Default(WorkerEntrypoint):
             )
             response.headers.set(
                 "Set-Cookie",
-                _cookie("darkomat_session", session_token, SESSION_DAYS * 86400),
+                _cookie(
+                    "darkomat_session",
+                    session_token,
+                    SESSION_DAYS * 86400,
+                ),
             )
             return response
 
         except Exception:
             if user:
-                await self.env.DB.prepare(
-                    "DELETE FROM users WHERE id = ?"
-                ).bind(user["id"]).run()
+                try:
+                    await self.env.DB.prepare(
+                        "DELETE FROM users WHERE id = ?"
+                    ).bind(user["id"]).run()
+                except Exception:
+                    pass
 
             return Response.json({
                 "ok": False,
-                "error": "verification_failed",
+                "error": "register_failed",
             }, status=500)
 
     async def verify_email(self, request, language):
-        query = parse_qs(urlparse(request.url).query)
-        token = query.get("token", [None])[0]
-
-        if not token:
-            return self.html(
-                message_page(
-                    language,
-                    t("auth.verification_failed", language),
-                    t("error.back_home", language),
-                    "/",
-                ),
-                status=400,
-            )
-
-        token_hash = _hash_token(token)
-
-        record = await self.env.DB.prepare(
-            "SELECT user_id, expires_at, used_at "
-            "FROM email_verification_tokens "
-            "WHERE token_hash = ?"
-        ).bind(token_hash).first()
-
-        if not record or record["used_at"]:
-            return self.html(
-                message_page(
-                    language,
-                    t("auth.verification_failed", language),
-                    t("nav.login", language),
-                    "/login",
-                ),
-                status=400,
-            )
-
-        expires_at = record["expires_at"].replace("Z", "+00:00")
-        if datetime.fromisoformat(expires_at) < _now():
-            return self.html(
-                message_page(
-                    language,
-                    t("auth.verification_failed", language),
-                    t("nav.login", language),
-                    "/login",
-                ),
-                status=400,
-            )
-
-        await self.env.DB.prepare(
-            "UPDATE users SET email_verified_at = ? WHERE id = ?"
-        ).bind(_timestamp(_now()), record["user_id"]).run()
-
-        await self.env.DB.prepare(
-            "UPDATE email_verification_tokens SET used_at = ? "
-            "WHERE token_hash = ?"
-        ).bind(_timestamp(_now()), token_hash).run()
-
         return self.html(
             message_page(
                 language,
-                t("auth.verified", language),
-                t("nav.login", language),
-                "/login",
-            )
+                t("auth.verification_not_available", language),
+                t("error.back_home", language),
+                "/",
+            ),
+            status=404,
         )
 
     async def login(self, request, language):
@@ -297,7 +224,7 @@ class Default(WorkerEntrypoint):
             return Response.json({"ok": False, "error": "required"}, status=400)
 
         user = await self.env.DB.prepare(
-            "SELECT id, name, email, password_hash, email_verified_at "
+            "SELECT id, name, email, password_hash "
             "FROM users WHERE email = ?"
         ).bind(email).first()
 
@@ -309,12 +236,6 @@ class Default(WorkerEntrypoint):
                 "ok": False,
                 "error": "login_failed",
             }, status=401)
-
-        if not user["email_verified_at"]:
-            return Response.json({
-                "ok": False,
-                "error": "email_not_verified",
-            }, status=403)
 
         session_token = _new_token()
         session_hash = _hash_token(session_token)

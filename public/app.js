@@ -1,1 +1,1 @@
-// Reserved for future progressive-enhancement features. Authentication uses normal HTML forms.
+// Authentication uses normal server-side HTML forms.

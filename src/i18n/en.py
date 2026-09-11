@@ -76,5 +76,6 @@ TEXTS = {
     "email.verify_greeting": "Hi {name},",
     "email.verify_text": "Please click the button below to verify your email address.",
     "email.verify_button": "Verify email address",
+    "auth.verification_not_available": "Email verification is temporarily disabled.",
     "footer.tagline": "Family wishlists made simple.",
 }
