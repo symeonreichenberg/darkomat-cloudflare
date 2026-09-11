@@ -13,8 +13,6 @@ PASSWORD_ITERATIONS = 600_000
 SALT_LENGTH = 16
 KEY_LENGTH_BITS = 256
 
-encoder = TextEncoder.new()
-
 
 def base64_encode(value) -> str:
     return base64.b64encode(bytes(value)).decode("ascii")
@@ -31,6 +29,8 @@ async def hash_password(password: str) -> str:
     Stored format:
     pbkdf2_sha256$600000$<salt-base64>$<hash-base64>
     """
+
+    encoder = TextEncoder.new()
 
     salt = Uint8Array.new(SALT_LENGTH)
     crypto.getRandomValues(salt)
@@ -81,6 +81,7 @@ async def verify_password(password: str, stored_hash: str) -> bool:
         iterations = int(iterations)
         salt = base64_decode(salt_b64)
 
+        encoder = TextEncoder.new()
         password_data = encoder.encode(password)
 
         key = await crypto.subtle.importKey(
