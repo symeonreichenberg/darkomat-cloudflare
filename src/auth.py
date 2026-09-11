@@ -23,13 +23,6 @@ def base64_decode(value: str) -> bytes:
 
 
 async def hash_password(password: str) -> str:
-    """
-    Create a PBKDF2-HMAC-SHA256 password hash.
-
-    Stored format:
-    pbkdf2_sha256$600000$<salt-base64>$<hash-base64>
-    """
-
     encoder = TextEncoder.new()
 
     salt = Uint8Array.new(SALT_LENGTH)
@@ -66,10 +59,6 @@ async def hash_password(password: str) -> str:
 
 
 async def verify_password(password: str, stored_hash: str) -> bool:
-    """
-    Verify a password against a stored PBKDF2 hash.
-    """
-
     try:
         algorithm, iterations, salt_b64, expected_hash_b64 = (
             stored_hash.split("$")

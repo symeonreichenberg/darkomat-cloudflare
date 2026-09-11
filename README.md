@@ -1,33 +1,25 @@
-# Dárkomat 2.0
+# Dárkomat — Cloudflare Worker
 
-Nová verze Dárkomatu postavená na Cloudflare Workers + Python + D1.
+## Structure
 
-## Aktuální stav
+- `src/` — Python Worker and reusable application code.
+- `src/i18n/` — English and Czech translation dictionaries.
+- `src/templates.py` — shared HTML layout and page components.
+- `public/` — static browser assets such as CSS and JavaScript.
+- `migrations/` — D1 schema migrations.
 
-- minimální Python Worker
-- `/api/health`
-- první návrh D1 schématu
-- D1 zatím není připojená
+Pages currently implemented:
 
-## Cloudflare Workers Builds
+- `/` — homepage
+- `/register` — registration form
+- `/login` — login form
+- unmatched paths — custom 404 page
 
-Production deploy command:
+API endpoints currently implemented:
 
-```text
-uv run pywrangler deploy
-```
+- `GET /api/health`
+- `GET /api/db-test`
+- `POST /api/register`
+- `POST /api/login`
 
-Python Workers používají `pywrangler` pro lokální vývoj a deployment.
-
-## Další kroky
-
-1. první deploy
-2. vytvořit D1 databázi
-3. přidat D1 binding
-4. první SQL dotaz z Pythonu
-5. registrace a přihlášení
-6. skupiny
-7. dárky
-8. rezervace
-9. pozvánky
-10. e-mail přes Resend
+Authentication sessions are intentionally not implemented yet. Login currently verifies credentials and returns a successful API response; the next backend step is a persistent session/cookie layer.

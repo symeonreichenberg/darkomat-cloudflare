@@ -4,11 +4,9 @@
   "main": "src/entry.py",
   "compatibility_date": "2026-09-10",
   "compatibility_flags": ["python_workers"],
-
   "assets": {
     "directory": "./public/"
   },
-
   "d1_databases": [
     {
       "binding": "DB",
@@ -16,7 +14,6 @@
       "database_id": "74804b57-56b6-4693-86b6-e0b5f9d44998"
     }
   ],
-
   "observability": {
     "logs": {
       "enabled": true,
