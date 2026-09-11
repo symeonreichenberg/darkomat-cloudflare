@@ -1,6 +1,7 @@
+import base64
 import hmac
 
-from js import Buffer, Object, TextEncoder, Uint8Array, crypto
+from js import Object, TextEncoder, Uint8Array, crypto
 from pyodide.ffi import to_js as _to_js
 
 
@@ -13,6 +14,14 @@ SALT_LENGTH = 16
 KEY_LENGTH_BITS = 256
 
 encoder = TextEncoder.new()
+
+
+def base64_encode(value) -> str:
+    return base64.b64encode(bytes(value)).decode("ascii")
+
+
+def base64_decode(value: str) -> bytes:
+    return base64.b64decode(value)
 
 
 async def hash_password(password: str) -> str:
@@ -47,8 +56,8 @@ async def hash_password(password: str) -> str:
         KEY_LENGTH_BITS,
     )
 
-    salt_b64 = Buffer.from(salt).toString("base64")
-    hash_b64 = Buffer.from(derived).toString("base64")
+    salt_b64 = base64_encode(salt)
+    hash_b64 = base64_encode(derived)
 
     return (
         f"pbkdf2_sha256${PASSWORD_ITERATIONS}"
@@ -70,8 +79,7 @@ async def verify_password(password: str, stored_hash: str) -> bool:
             return False
 
         iterations = int(iterations)
-
-        salt = Buffer.from(salt_b64, "base64")
+        salt = base64_decode(salt_b64)
 
         password_data = encoder.encode(password)
 
@@ -94,7 +102,7 @@ async def verify_password(password: str, stored_hash: str) -> bool:
             KEY_LENGTH_BITS,
         )
 
-        actual_hash_b64 = Buffer.from(derived).toString("base64")
+        actual_hash_b64 = base64_encode(derived)
 
         return hmac.compare_digest(
             actual_hash_b64,
