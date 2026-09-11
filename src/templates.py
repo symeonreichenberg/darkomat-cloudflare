@@ -136,7 +136,16 @@ def _feature(icon, title_key, text_key, language):
 </div>"""
 
 
-def auth_page(language: str, mode: str) -> str:
+def auth_page(language: str, mode: str, pending: bool = False) -> str:
+    if mode == "register" and pending:
+        return message_page(
+            language,
+            "auth.verify_sent_title",
+            "auth.verify_sent_text",
+            "auth.login_link",
+            "/login",
+        )
+
     is_login = mode == "login"
     title_key = "auth.login_title" if is_login else "auth.register_title"
     subtitle_key = "auth.login_subtitle" if is_login else "auth.register_subtitle"
@@ -199,6 +208,29 @@ def not_found_page(language: str) -> str:
     <h1>{escape(t("error.not_found_title", language))}</h1>
     <p class="auth-subtitle">{escape(t("error.not_found_text", language))}</p>
     <a class="button" href="/">{escape(t("error.back_home", language))}</a>
+  </div>
+</section>
+""",
+    )
+
+
+def message_page(
+    language: str,
+    title_key: str,
+    text_key: str,
+    link_key: str,
+    link_url: str,
+) -> str:
+    return layout(
+        language,
+        t(title_key, language),
+        f"""
+<section class="auth-section">
+  <div class="auth-card">
+    <p class="eyebrow">{escape(t("brand.name", language))}</p>
+    <h1>{escape(t(title_key, language))}</h1>
+    <p class="auth-subtitle">{escape(t(text_key, language))}</p>
+    <a class="button" href="{escape(link_url)}">{escape(t(link_key, language))}</a>
   </div>
 </section>
 """,

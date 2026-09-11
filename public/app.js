@@ -6,25 +6,6 @@
   const error = document.getElementById(`${page}-error`);
   if (!form || !error) return;
 
-  const messages = {
-    en: {
-      required: "Please fill in all required fields.",
-      password_short: "Password must be at least 8 characters.",
-      register_failed: "We could not create your account. Please check your details and try again.",
-      login_failed: "The email or password is incorrect.",
-      unexpected: "Something went wrong. Please try again."
-    },
-    cs: {
-      required: "Vyplňte prosím všechna povinná pole.",
-      password_short: "Heslo musí mít alespoň 8 znaků.",
-      register_failed: "Účet se nepodařilo vytvořit. Zkontrolujte údaje a zkuste to znovu.",
-      login_failed: "E-mail nebo heslo není správné.",
-      unexpected: "Něco se pokazilo. Zkuste to prosím znovu."
-    }
-  };
-
-  const language = document.documentElement.lang === "cs" ? "cs" : "en";
-
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     error.hidden = true;
@@ -37,7 +18,7 @@
       return;
     }
 
-    if (payload.password.length < 8) {
+    if (page === "register" && payload.password.length < 8) {
       showError("password_short");
       return;
     }
@@ -52,20 +33,18 @@
       const result = await response.json();
 
       if (!response.ok || !result.ok) {
-        showError(result.error || "unexpected");
+        showError(result.message || "Request failed.");
         return;
       }
 
-      // Authentication state will be added with the session layer.
-      // For now, successful registration/login has a clear functional response.
-      window.location.href = "/";
+      window.location.href = result.redirect || "/";
     } catch {
-      showError("unexpected");
+      showError("Something went wrong. Please try again.");
     }
   });
 
-  function showError(key) {
-    error.textContent = messages[language][key] || messages[language].unexpected;
+  function showError(message) {
+    error.textContent = message;
     error.hidden = false;
   }
 })();

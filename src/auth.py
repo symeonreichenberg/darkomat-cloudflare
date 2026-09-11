@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import hmac
 
 from js import Object, TextEncoder, Uint8Array, crypto
@@ -12,6 +13,7 @@ def to_js(value):
 PASSWORD_ITERATIONS = 600_000
 SALT_LENGTH = 16
 KEY_LENGTH_BITS = 256
+TOKEN_LENGTH = 32
 
 
 def base64_encode(value) -> str:
@@ -20,6 +22,20 @@ def base64_encode(value) -> str:
 
 def base64_decode(value: str) -> bytes:
     return base64.b64decode(value)
+
+
+def generate_verification_token() -> str:
+    token = Uint8Array.new(TOKEN_LENGTH)
+    crypto.getRandomValues(token)
+    return (
+        base64.urlsafe_b64encode(bytes(token))
+        .decode("ascii")
+        .rstrip("=")
+    )
+
+
+def hash_verification_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 async def hash_password(password: str) -> str:
